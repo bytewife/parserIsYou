@@ -5,11 +5,10 @@ import scala.collection.mutable.ArrayBuffer
 /*
 Grammar:
 
-Start = Noun T_Verb Property
-      | Noun T_Verb Noun
+Start = Noun T_Verb (Property | Noun)
 
-Noun = (T_Not | epsilon) Noun
-Property = (T_Not | epsilon) Property
+Noun = (T_Not | epsilon) T_Noun
+Property = (T_Not | epsilon) T_Property
 */
 
 // Borrowed these Terminals from https://github.com/BrianPopeck/baba-parser/blob/master/terminal_symbols.py
@@ -20,22 +19,34 @@ val TERMINAL_SYMBOLS = Map(
   "T_Not" -> List("NOT")
 )
 
+class RuleReturnType(
+  val isValid: Boolean,
+ )
+
+class Token(
+  val category: String,
+  val literal: String
+)
+
 // tokens format: (category, string)
-var tokens: ArrayBuffer[(String, String)] = ArrayBuffer[(String, String)]()
+var tokens: ArrayBuffer[Token] = ArrayBuffer[Token]()
+var token_index = 0
 
 @main def main() = {
-  val input = "BABA IS YOU"
+  val input = "BABA IS BABA"
   val inputs = input.split(' ')
-  lex(inputs)
+  scan(inputs)
+  val isValid = parse()
+  println(isValid)
 }
 
-// Get tokens.
-def lex(strs: Array[String]) = {
+// Scan; get tokens.
+def scan(strs: Array[String]) = {
   strs.foreach((str) => {
     tokenize(str) match {
-      case Some(category) => tokens += Tuple2(category, str)
+      case Some(category) => tokens += Token(category, str)
       case None => {
-        throw new IllegalArgumentException(s"Error: Invalid string "$str". Exiting.")
+        throw new IllegalArgumentException(s"Error: Invalid string '$str'. Exiting.")
       }
     }
   })
@@ -48,3 +59,61 @@ def tokenize(str: String): Option[String] = {
       return Some(category)
   return None
 }
+
+def doRule(rules: (() => RuleReturnType)*): RuleReturnType = {
+  val original_index = token_index
+  for rule <- rules do
+    val ret = rule()
+    if ret.isValid then
+      token_index += 1
+      println("Hi")
+    else
+      token_index = original_index
+      println("Bye")
+      return RuleReturnType(false)
+  return RuleReturnType(true)
+}
+
+def parse(): Boolean = {
+  return Start().isValid
+}
+
+def Start(): RuleReturnType = {
+  println("doStart()")
+  token_index -= 1 // TODO This is a temporary fix; need to factor in a token_index offset for non-index-increasing rules like Start()
+  val ret = doRule(Noun, T_Verb, Noun)
+  return RuleReturnType(ret.isValid)
+}
+
+def Noun(): RuleReturnType = {
+  return doRule(T_Not, T_Noun)
+}
+
+// Determine if current token string matches given syntactic category.
+def isCategory(category: String): RuleReturnType = {
+  if tokens.length <= token_index then return RuleReturnType(false)
+  val e = tokens(token_index).literal
+  val k = tokens(token_index).category
+  println(s"$category" + s" $e $k")
+  if tokens(token_index).category == category then
+    return RuleReturnType(true)
+  return RuleReturnType(false)
+}
+
+def T_Noun(): RuleReturnType = {
+  return isCategory("T_Noun")
+}
+
+def T_Verb(): RuleReturnType = {
+  println(token_index)
+  return isCategory("T_Verb")
+}
+
+def T_Not(): RuleReturnType = {
+  if !isCategory("T_Not").isValid then
+    println("backed")
+    token_index -= 1
+  // Note: Since this contains '| epsilon', it will always match as true.
+  return RuleReturnType(true)
+}
+//
