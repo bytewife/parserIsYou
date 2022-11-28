@@ -37,7 +37,8 @@ var token_index = 0
   val inputs = input.split(' ')
   scan(inputs)
   val isValid = parse()
-  println(isValid)
+  val result = if (isValid) "valid" else "invalid"
+  println(s"'$input' is ${result}")
 }
 
 // Scan; get tokens.
@@ -64,12 +65,9 @@ def doRule(rules: (() => RuleReturnType)*): RuleReturnType = {
   val original_index = token_index
   for rule <- rules do
     val ret = rule()
-    if ret.isValid then
-      token_index += 1
-      println("Hi")
+    if ret.isValid then ()
     else
       token_index = original_index
-      println("Bye")
       return RuleReturnType(false)
   return RuleReturnType(true)
 }
@@ -79,10 +77,7 @@ def parse(): Boolean = {
 }
 
 def Start(): RuleReturnType = {
-  println("doStart()")
-  token_index -= 1 // TODO This is a temporary fix; need to factor in a token_index offset for non-index-increasing rules like Start()
-  val ret = doRule(Noun, T_Verb, Noun)
-  return RuleReturnType(ret.isValid)
+  return doRule(Noun, T_Verb, Noun)
 }
 
 def Noun(): RuleReturnType = {
@@ -92,10 +87,8 @@ def Noun(): RuleReturnType = {
 // Determine if current token string matches given syntactic category.
 def isCategory(category: String): RuleReturnType = {
   if tokens.length <= token_index then return RuleReturnType(false)
-  val e = tokens(token_index).literal
-  val k = tokens(token_index).category
-  println(s"$category" + s" $e $k")
   if tokens(token_index).category == category then
+    token_index += 1
     return RuleReturnType(true)
   return RuleReturnType(false)
 }
@@ -105,14 +98,10 @@ def T_Noun(): RuleReturnType = {
 }
 
 def T_Verb(): RuleReturnType = {
-  println(token_index)
   return isCategory("T_Verb")
 }
 
 def T_Not(): RuleReturnType = {
-  if !isCategory("T_Not").isValid then
-    println("backed")
-    token_index -= 1
   // Note: Since this contains '| epsilon', it will always match as true.
   return RuleReturnType(true)
 }
