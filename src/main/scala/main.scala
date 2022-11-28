@@ -33,7 +33,7 @@ var tokens: ArrayBuffer[Token] = ArrayBuffer[Token]()
 var token_index = 0
 
 @main def main() = {
-  val input = "BABA IS BABA"
+  val input = "BABA IS WIN"
   val inputs = input.split(' ')
   scan(inputs)
   val isValid = parse()
@@ -61,6 +61,10 @@ def tokenize(str: String): Option[String] = {
   return None
 }
 
+def parse(): Boolean = {
+  return Start().isValid
+}
+
 def doRule(rules: (() => RuleReturnType)*): RuleReturnType = {
   val original_index = token_index
   for rule <- rules do
@@ -72,18 +76,6 @@ def doRule(rules: (() => RuleReturnType)*): RuleReturnType = {
   return RuleReturnType(true)
 }
 
-def parse(): Boolean = {
-  return Start().isValid
-}
-
-def Start(): RuleReturnType = {
-  return doRule(Noun, T_Verb, Noun)
-}
-
-def Noun(): RuleReturnType = {
-  return doRule(T_Not, T_Noun)
-}
-
 // Determine if current token string matches given syntactic category.
 def isCategory(category: String): RuleReturnType = {
   if tokens.length <= token_index then return RuleReturnType(false)
@@ -91,6 +83,19 @@ def isCategory(category: String): RuleReturnType = {
     token_index += 1
     return RuleReturnType(true)
   return RuleReturnType(false)
+}
+
+def Start(): RuleReturnType = {
+  // Abuse short-circuit OR.
+  return RuleReturnType(doRule(Noun, T_Verb, Property).isValid || doRule(Noun, T_Verb, Property).isValid)
+}
+
+def Noun(): RuleReturnType = {
+  return doRule(T_Not, T_Noun)
+}
+
+def Property(): RuleReturnType = {
+  return doRule(T_Not, T_Property)
 }
 
 def T_Noun(): RuleReturnType = {
@@ -101,8 +106,11 @@ def T_Verb(): RuleReturnType = {
   return isCategory("T_Verb")
 }
 
+def T_Property(): RuleReturnType = {
+  return isCategory("T_Property")
+}
+
 def T_Not(): RuleReturnType = {
   // Note: Since this contains '| epsilon', it will always match as true.
   return RuleReturnType(true)
 }
-//
