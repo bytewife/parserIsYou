@@ -1,3 +1,7 @@
+import javax.naming.InvalidNameException
+import scala.Console.in
+import scala.collection.mutable.ArrayBuffer
+
 /*
 Grammar:
 
@@ -16,5 +20,31 @@ val TERMINAL_SYMBOLS = Map(
   "T_Not" -> List("NOT")
 )
 
+// tokens format: (category, string)
+var tokens: ArrayBuffer[(String, String)] = ArrayBuffer[(String, String)]()
+
 @main def main() = {
+  val input = "BABA IS YOU"
+  val inputs = input.split(' ')
+  lex(inputs)
+}
+
+// Get tokens.
+def lex(strs: Array[String]) = {
+  strs.foreach((str) => {
+    tokenize(str) match {
+      case Some(category) => tokens += Tuple2(category, str)
+      case None => {
+        throw new IllegalArgumentException(s"Error: Invalid string "$str". Exiting.")
+      }
+    }
+  })
+}
+
+// Get terminal symbol of input string.
+def tokenize(str: String): Option[String] = {
+  for (category, literals) <- TERMINAL_SYMBOLS do
+    if literals.contains(str) then
+      return Some(category)
+  return None
 }
