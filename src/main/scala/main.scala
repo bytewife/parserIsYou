@@ -1,3 +1,5 @@
+package com.ivyraine.parserisyou
+
 import javax.naming.InvalidNameException
 import scala.Console.in
 import scala.collection.mutable.ArrayBuffer
