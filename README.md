@@ -11,6 +11,8 @@ To run it, clone this repo, then use:
 ```shell
 cd parserToYou
 sbt run
+# Then, wait for `Enter a valid Baba Is You sentence!`
+# and then input a sentence, such as `baba is you`.
 ```
 
 # Attribution
