@@ -1,5 +1,6 @@
 package com.ivyraine.parserisyou
 
+import scala.io.StdIn.readLine
 import javax.naming.InvalidNameException
 import scala.Console.in
 import scala.collection.mutable.ArrayBuffer
@@ -35,7 +36,8 @@ var tokens: ArrayBuffer[Token] = ArrayBuffer[Token]()
 var token_index = 0
 
 @main def main() = {
-  val input = "BABA IS WIN"
+  println("Enter a valid Baba Is You sentence!")
+  val input = readLine().toUpperCase()
   val inputs = input.split(' ')
   scan(inputs)
   val isValid = parse()
