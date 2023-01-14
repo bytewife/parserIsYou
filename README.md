@@ -2,6 +2,13 @@
 A (very) basic parser inspired by the grammar of the game Baba Is You!  
 Given that the parser is ~100 lines, I hope that you may find this a useful learning reference!
 
+# Grammar
+```
+Start = Noun T_Verb (Property | Noun)
+Noun = (T_Not | epsilon) T_Noun
+Property = (T_Not | epsilon) T_Property
+```
+
 # Installation
 This project requires the following:
 - Scala 3+
